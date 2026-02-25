@@ -1,24 +1,269 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>우리가족의 건강한 등산 활동 기록</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
-    iframe {
-      width: 100%;
-      height: 100vh;
-      border: none;
-      display: block;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Drive URL 변환기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #1a1a18;
+    color: #f5f0e8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .card {
+    background: #222820;
+    border: 1px solid rgba(122,158,126,0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-size: 1.2rem;
+    color: #c8d5c9;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+  .sub {
+    font-size: 0.78rem;
+    color: #7a9e7e;
+    margin-bottom: 1.8rem;
+    letter-spacing: 0.1em;
+  }
+  label {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: #7a9e7e;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  textarea, input[type="text"] {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(122,158,126,0.2);
+    border-radius: 8px;
+    color: #f5f0e8;
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border 0.2s;
+    resize: none;
+    font-family: 'Courier New', monospace;
+  }
+  textarea:focus, input[type="text"]:focus {
+    border-color: rgba(122,158,126,0.6);
+  }
+  textarea { height: 80px; }
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  button {
+    flex: 1;
+    padding: 0.7rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-convert {
+    background: #2d3a2e;
+    border: 1px solid #7a9e7e;
+    color: #c8d5c9;
+  }
+  .btn-convert:hover { background: #3a4a3b; }
+  .btn-clear {
+    background: transparent;
+    border: 1px solid rgba(122,158,126,0.2);
+    color: #7a9e7e;
+    flex: 0 0 80px;
+  }
+  .btn-clear:hover { border-color: #7a9e7e; }
+
+  .result-block {
+    margin-top: 1.2rem;
+    display: none;
+  }
+  .result-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: #7a9e7e;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .result-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(122,158,126,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: #c9a84c;
+    word-break: break-all;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+  }
+  .copy-btn {
+    width: 100%;
+    padding: 0.6rem;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    color: #c9a84c;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.75rem;
+  }
+  .copy-btn:hover { background: rgba(201,168,76,0.2); }
+  .copy-btn.copied { background: rgba(122,158,126,0.2); border-color: #7a9e7e; color: #7a9e7e; }
+
+  .preview-wrap {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(122,158,126,0.1);
+    padding-top: 1rem;
+    display: none;
+  }
+  .preview-wrap img {
+    width: 100%;
+    border-radius: 8px;
+    max-height: 250px;
+    object-fit: cover;
+    display: block;
+  }
+  .preview-error {
+    text-align: center;
+    padding: 2rem;
+    color: #7a9e7e;
+    font-size: 0.8rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+  }
+
+  .msg { font-size: 0.78rem; color: #ef4444; margin-top: 0.5rem; display: none; }
+  .divider { border: none; border-top: 1px solid rgba(122,158,126,0.1); margin: 1.5rem 0; }
+</style>
 </head>
 <body>
-  <iframe
-    src="https://script.google.com/macros/s/AKfycbxSob-CWw5pf1zZeuu8R5o99rnyOZFR3MZB8BwV2BGJotwUjEz2Z1q3RN_ThWn-T4L6/exec"
-    allowfullscreen>
-  </iframe>
+<div class="card">
+  <h1>🔗 Google Drive URL 변환기</h1>
+  <p class="sub">Drive 공유 링크 → 이미지 직접 URL</p>
+
+  <label>Drive 공유 링크 붙여넣기</label>
+  <textarea id="input" placeholder="https://drive.google.com/file/d/파일ID/view?usp=sharing"></textarea>
+  <p class="msg" id="err">❌ Google Drive 링크가 아니거나 파일 ID를 찾을 수 없어요.</p>
+
+  <div class="btn-row">
+    <button class="btn-convert" onclick="convert()">🔄 변환하기</button>
+    <button class="btn-clear" onclick="clear()">초기화</button>
+  </div>
+
+  <!-- 결과 -->
+  <div class="result-block" id="result-block">
+
+    <div class="result-label">이미지 직접 URL</div>
+    <div class="result-box" id="out-url"></div>
+    <button class="copy-btn" id="copy-url" onclick="copyText('out-url','copy-url')">📋 URL 복사</button>
+
+    <div class="result-label">img 태그 (html_code에 바로 사용)</div>
+    <div class="result-box" id="out-img"></div>
+    <button class="copy-btn" id="copy-img" onclick="copyText('out-img','copy-img')">📋 img 태그 복사</button>
+
+    <!-- 미리보기 -->
+    <div class="preview-wrap" id="preview-wrap">
+      <div class="result-label">이미지 미리보기</div>
+      <img id="preview-img" src="" alt="미리보기"
+           onload="this.style.display='block'; document.getElementById('preview-err').style.display='none';"
+           onerror="this.style.display='none'; document.getElementById('preview-err').style.display='block';"
+           style="display:none;">
+      <div class="preview-error" id="preview-err" style="display:none;">
+        ⚠️ 이미지를 불러올 수 없어요.<br>Drive 공유 설정을 <b>"링크가 있는 모든 사용자"</b>로 변경하세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- 산 이름 입력 -->
+  <hr class="divider">
+  <label>산 이름 (선택 — img alt 및 함수에 사용)</label>
+  <input type="text" id="mountain-name" placeholder="예: 백마산" oninput="if(lastId) convert()">
+</div>
+
+<script>
+let lastId = '';
+
+function convert() {
+  const raw  = document.getElementById('input').value.trim();
+  const name = document.getElementById('mountain-name').value.trim() || '산이름';
+  const err  = document.getElementById('err');
+
+  // 파일 ID 추출
+  const match = raw.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) {
+    err.style.display = 'block';
+    document.getElementById('result-block').style.display = 'none';
+    return;
+  }
+
+  err.style.display = 'none';
+  lastId = match[1];
+
+  const url  = `https://drive.google.com/thumbnail?id=${lastId}&sz=w800`;
+  const img  = `<img src="${url}" alt="${name}" style="width:100%;border-radius:8px;margin-top:8px;">`;
+  document.getElementById('out-url').textContent = url;
+  document.getElementById('out-img').textContent = img;
+  document.getElementById('result-block').style.display = 'block';
+
+  // 미리보기
+  const pw = document.getElementById('preview-wrap');
+  pw.style.display = 'block';
+  document.getElementById('preview-img').src = url.replace('sz=w800','sz=w400');
+
+  // copy 버튼 초기화
+  ['copy-url','copy-img'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.classList.remove('copied');
+    btn.textContent = btn.textContent.replace('✅ 복사됨!', '📋 ' + btn.textContent.split('복사')[1] + '복사');
+  });
+}
+
+function copyText(srcId, btnId) {
+  const text = document.getElementById(srcId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    const orig = btn.textContent;
+    btn.textContent = '✅ 복사됨!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function clear() {
+  document.getElementById('input').value = '';
+  document.getElementById('mountain-name').value = '';
+  document.getElementById('result-block').style.display = 'none';
+  document.getElementById('err').style.display = 'none';
+  document.getElementById('preview-wrap').style.display = 'none';
+  lastId = '';
+}
+
+// 엔터키로 변환
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); convert(); }
+});
+</script>
 </body>
 </html>
